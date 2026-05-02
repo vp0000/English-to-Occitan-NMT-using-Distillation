@@ -1,0 +1,15 @@
+import os
+
+def check_checkpoint(checkpt: Optional[str|bool], def_path: str) -> Optional[str|bool]:
+        assert def_path is str
+        assert checkpt is str or bool or None
+        if checkpt == None or checkpt == False: return None
+        elif checkpt == True:
+            try:
+                if any('checkpoint' in fld for fld in os.listdir(def_path)): return True
+                else: return None
+            except OSError as e:
+                print(f'Error: {e}')
+        else:
+            if os.path.isdir(checkpt): return checkpt
+            else: return None
