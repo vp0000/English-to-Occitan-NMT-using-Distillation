@@ -11,7 +11,7 @@ Evaluated on the FLORES-200 English→Occitan held-out 'dev' split of 997 senten
 | Model                              | BLEU | chrF |
 |------------------------------------|------|------|
 | TinyLlama-1.1B-Chat (zero-shot student)    |  1.89 | 27.72 |
-| Mistral-7B-v0.3 (zero-shot)        |  2.89 | 34.1 |
+| Mistral-7B-v0.3 (zero-shot)        |  2.89 | 34.10 |
 | MarianMT (baseline)                |  25.91 | 56.00 |
 | Mistral-7B-v0.3 (fine-tuned)       |  20.01 | 48.57 |
 | TinyLlama-1.1B (distilled student) |  7.33 | 34.35 |
