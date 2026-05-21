@@ -4,6 +4,19 @@ This repo hosts an initial version of an end-to-end pipeline for translating Eng
 The model fine-tuning and knowledge distillation utilises the CCMatrix English-Occitan parallel corpus of 1.8M sentences, and the performance has been evaluated using a
 held-out set of FLORES-200, alongside a dedicated Marian MT baseline for comparison. These have also been compared against the zero-shot chat versions of my model setup to demonstrate the performance gains from finetuning on a hard task like NMT on a low-resource langauge.
 
+## Results
+
+Evaluated on the FLORES-200 English→Occitan held-out 'dev' split of 997 sentences.
+
+| Model                              | BLEU | chrF |
+|------------------------------------|------|------|
+| TinyLlama-1.1B-Chat (zero-shot student)    |  1.89 | 27.72 |
+| Mistral-7B-v0.3 (zero-shot)        |  2.89 | 34.1 |
+| MarianMT (baseline)                |  25.91 | 56.00 |
+| Mistral-7B-v0.3 (fine-tuned)       |  20.01 | 48.57 |
+| TinyLlama-1.1B (distilled student) |  7.33 | 34.35 |
+
+
 ## Motivation
 
 ### Introduction
