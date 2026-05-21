@@ -9,7 +9,7 @@ held-out set of FLORES-200, alongside a dedicated Marian MT baseline for compari
 
 This personal project was primarily an attempt to understand knowledge distillation in LLMs and their applications for machine translation. The initial idea came about after
 reading this paper by Maxim Enis and Mark Hopkins:
-'''bibtext
+```bibtex
 @misc{enis2024llmnmtadvancinglowresource,
       title={From LLM to NMT: Advancing Low-Resource Machine Translation with Claude}, 
       author={Maxim Enis and Mark Hopkins},
@@ -19,6 +19,6 @@ reading this paper by Maxim Enis and Mark Hopkins:
       primaryClass={cs.CL},
       url={https://arxiv.org/abs/2404.13813}, 
 }
-'''
+```
 
 
