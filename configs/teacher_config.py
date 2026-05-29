@@ -2,15 +2,17 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, Tuple
 from transformers import BitsAndBytesConfig, AutoModelForCausalLM, Trainer, TrainingArguments, DataCollatorForSeq2Seq, AutoTokenizer
 from peft import LoraConfig, get_peft_model
+from base_config import Config
 import torch
 import os
 
+base_vals = Config()
 @dataclass
 class TeacherTrainingConfig:
     """Master configuration for teacher fine-tuning."""
 
     # Model
-    model_name: str = "mistralai/Mistral-7B-v0.3"
+    model_name: str = base_vals.teacher_model
     max_seq_length: int = 512
 
     # Training hyperparameters
@@ -81,6 +83,13 @@ class TeacherTrainingConfig:
         if self.report_to == "stdout":
             print("Warning: 'stdout' not supported, defaulting to 'none'")
             self.report_to = "none"
+        
+        try:
+            import flash_attn
+            if flash_attn.__version__ >= "2.0.0" and torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8:
+                self.attn_implementation = "flash_attention_2"
+        except ImportError:
+            pass
 
     def to_training_arguments(self) -> TrainingArguments:
         """Convert to HuggingFace TrainingArguments."""

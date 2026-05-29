@@ -47,11 +47,11 @@ def cached_or_compute(path: Optional[str], compute_fn):
             else:
                 raise ValueError('Filepath should have an xlsx or a csv extension.')
         else:
-            df, *args = compute_fn() #Throwaway args variable
+            df = compute_fn() #Throwaway args variable
             os.makedirs(os.path.dirname(root), exist_ok=True)
             # print(extension)
             if extension.lower() == ".xlsx":
-                df = df.replace(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', regex=True)
+                df = df.replace(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', regex=True) # Remove invalid characters for Excel, csv can handle them so not needed there
                 df.to_excel(path, index=False)
             elif extension.lower() == ".csv":
                 df.to_csv(path, index=False, encoding="utf-8-sig")
@@ -167,7 +167,6 @@ def main():
     else:
         checkpoint = check_checkpoint(base_config.checkpoints, teacher_config.output_dir)
         if base_config.report == "wandb":
-            load_dotenv()
             wandb.login(key=os.environ.get('WANDB_API_KEY')) # type: ignore[attr-defined]
             run_name = f"{model_name_extract(base_config.teacher_model)}_size={len(train_data)}_clean={base_config.cleaning_flag}_sampling={base_config.sampling_strategy}_{curr_time}"
             wandb.init(project=os.environ.get('WANDB_PROJECT'), name=run_name) # type: ignore[attr-defined]
@@ -217,24 +216,19 @@ def main():
         curr_time = strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
         checkpoint = check_checkpoint(base_config.checkpoints, student_config.output_dir)
         if base_config.report == "wandb":
-            load_dotenv()
             run_name = f"{model_name_extract(base_config.student_model)}_size={len(train_data)}_clean={base_config.cleaning_flag}_sampling={base_config.sampling_strategy}_{curr_time}"
             wandb.init(project=os.environ.get('WANDB_PROJECT'), name=run_name)  # type: ignore[attr-defined]
             train_student_model(student_config, student_tokenizer, distill_dataset, distill_eval_dataset, checkpoint, output_dir_s)
             wandb.finish() # type: ignore[attr-defined]
         else:
             train_student_model(student_config, student_tokenizer, distill_dataset, distill_eval_dataset, checkpoint, output_dir_s)
-
-    # Step 6: Load student tokenizer and prepare distillation datasets
-
-    # Step 7: Train the student model
     
-    # Step 8: Create final eval dataset and generate metrics
+    # Step 6: Create final eval dataset and generate metrics
     eval_parallel = create_parallel_dataset(base_config.flores_dir, base_config.flores_codes, base_config.lang_codes, 'dev')
     # nllb_tokenizer = AutoTokenizer.from_pretrained(base_config.eval_model)
     # nllb_model = AutoModelForSeq2SeqLM.from_pretrained(base_config.eval_model)
-    marian_model = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-tc-big-en-cat_oci_spa")
-    marian_tokenizer = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-tc-big-en-cat_oci_spa")
+    marian_model = MarianMTModel.from_pretrained(base_config.marian_model)
+    marian_tokenizer = MarianTokenizer.from_pretrained(base_config.marian_model)
     nllb_flag = False
     
     teacher_model = load_saved_model(output_dir_t)
@@ -290,12 +284,12 @@ def main():
 
     # Zero-Shot Baseline
     zs_teacher_model, _ = FastLanguageModel.from_pretrained(
-        "mistralai/Mistral-7B-Instruct-v0.3",
+        base_config.teacher_model,
         max_seq_length=512,
         dtype=None,
         load_in_4bit=True
     )
-    zs_teacher_tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.3")
+    zs_teacher_tokenizer = AutoTokenizer.from_pretrained("base_config.teacher_model")
     zs_teacher_outputs_path = os.path.join(base_config.base_dir, "datasets/zs_teacher_eval.csv")
     zs_teacher_metrics = generate_eval_metrics(
             zs_teacher_model,
@@ -311,12 +305,12 @@ def main():
 
     # Zero-Shot Student Model
     zs_student_model, _ = FastLanguageModel.from_pretrained(
-        "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        base_config.student_model,
         max_seq_length=512,
         dtype=None,
         load_in_4bit=True
     )
-    zs_student_tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+    zs_student_tokenizer = AutoTokenizer.from_pretrained(base_config.student_model)
     zs_student_outputs_path = os.path.join(base_config.base_dir, "datasets/zs_student_eval.csv")
     zs_student_metrics = generate_eval_metrics(
             zs_student_model,
@@ -330,7 +324,7 @@ def main():
     gc.collect()
     torch.cuda.empty_cache()
 
-    # Step 9: Print metrics
+    # Step 7: Print metrics
     metrics_keys = ['Teacher', 'Student', 'Baseline(Marian)', 'Zero-Shot Teacher', 'Zero-Shot Student']
     metrics_dicts = [teacher_metrics, student_metrics, baseline_metrics, zs_teacher_metrics, zs_student_metrics]
     for i in range(5):

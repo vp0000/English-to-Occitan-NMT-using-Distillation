@@ -139,7 +139,7 @@ def perform_sampling(
         score_flag: bool = True
     ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     if not score_flag and sampling_strategy == "hybrid":
-        ValueError("Invalid sampling strategy. Cleaned data with score column required.")
+        raise ValueError("Invalid sampling strategy. Cleaned data with score column required.")
     if sampling_strategy == "random":
         return random_sampling(
             df=df,
