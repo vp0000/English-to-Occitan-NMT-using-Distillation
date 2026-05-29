@@ -28,11 +28,20 @@ This personal project was primarily an attempt to understand knowledge distillat
 This project tackles the harder direction as a baseline to see the effects of distillation in enabling translation without incurring high costs due to compute and space requirements.
 
 ### Initial Setup
-I have selected Occitan as the second language for three reasons:
-1. It is a Romance Language with some but not too many similarities to English given both belong to the same larger Indo-European language family.
-2. It does not have a rich online corpus that languages like French and Spanish benefit from, making it a genuinely interesting language to work on.
-3. It is part of a larger group of similarly low-resource languages in the region that share a unique history and culture in the south of France.
-The CCMatrix parallel corpora for multilingual tasks, which was developed using techniques listed at [CCMatrix: Mining Billions of High-Quality Parallel Sentences on the WEB (https://github.com/facebookresearch/LASER/tree/main/tasks/CCMatrix), and is currently hosted at OPUS, is a popular choice for this task. You can find it at this location:
-(https://opus.nlpl.eu/datasets/CCMatrix)
+
+I selected Occitan as the target language for three reasons:
+1. It is a Romance language with some, but not too many similarities to English, given that both belong to the wider Indo-European family. That middle ground makes it a meaningful test of cross-lingual transfer rather than a trivial or impossible one.
+2. It lacks the rich online corpora that languages like French and Spanish enjoy, which makes it a genuinely low-resource problem rather than a comfortable one.
+3. It belongs to a larger group of similarly low-resource regional languages in the south of France that share a distinct history and culture, so progress here is, in principle, transferable to its neighbours.
+
+For training data I used the **CCMatrix** English–Occitan parallel corpus — roughly 1.8M sentence pairs mined using the methods described in [CCMatrix: Mining Billions of High-Quality Parallel Sentences on the Web](https://github.com/facebookresearch/LASER/tree/main/tasks/CCMatrix) and hosted at [OPUS](https://opus.nlpl.eu/datasets/CCMatrix). CCMatrix is web-mined rather than hand-curated, so it is large but noisy — which is precisely what motivated the heavy cleaning and filtering stage described later.
+
+For the models, I chose **Mistral-7B-v0.3** as the teacher and **TinyLlama-1.1B** as the student. Both were picked for the same practical reasons:
+1. They are small, widely used, and well-supported through the Hugging Face API, which kept the engineering overhead low and the setup easy to reproduce.
+2. Precisely because they are small, any genuine improvement on a hard low-resource task is a useful signal, and a positive result here doesn't depend on access to a frontier-scale model, so it transfers more readily to anyone working under the same constraints.
+
+The ~7× parameter gap between teacher and student is the heart of the experiment; it's what makes the distillation worth measuring in the first place. As reference points, I evaluate both against a dedicated **MarianMT** baseline (`Helsinki-NLP/opus-mt-tc-big-en-cat_oci_spa`) and against the zero-shot versions of Mistral and TinyLlama, so the gains from fine-tuning and distillation can be read off directly.
+
+Compute was the binding constraint throughout, so the pipeline is built to run on a single GPU: models are loaded in 4-bit via [Unsloth](https://github.com/unslothai/unsloth) and adapted with LoRA rather than full fine-tuning. Final evaluation uses the held-out FLORES-200 English→Occitan `dev` split (997 sentences), scored with both BLEU and chrF — the latter being especially informative for a morphologically rich language like Occitan.
 
 
