@@ -40,7 +40,7 @@ For the models, I chose **Mistral-7B-v0.3** as the teacher and **TinyLlama-1.1B*
 1. They are small, widely used, and well-supported through the Hugging Face API, which kept the engineering overhead low and the setup easy to reproduce.
 2. Precisely because they are small, any genuine improvement on a hard low-resource task is a useful signal, and a positive result here doesn't depend on access to a frontier-scale model, so it transfers more readily to anyone working under the same constraints.
 
-The ~7× parameter gap between teacher and student is the heart of the experiment; it's what makes the distillation worth measuring in the first place. As reference points, I evaluate both against a dedicated **MarianMT** baseline (`Helsinki-NLP/opus-mt-tc-big-en-cat_oci_spa`) and against the zero-shot versions of Mistral and TinyLlama, so the gains from fine-tuning and distillation can be read off directly. Marian was chosen because it was developed specifically for low resource languages using the Marian framework in C++. You can read more about this here: [MarianMT](https://huggingface.co/docs/transformers/en/model_doc/marian)
+The ~7× parameter gap between teacher and student is the heart of the experiment; it's what makes the distillation worth measuring in the first place. As reference points, I evaluate both against a dedicated **MarianMT** baseline (`Helsinki-NLP/opus-mt-tc-big-en-cat_oci_spa`) and against the zero-shot versions of Mistral and TinyLlama, so the gains from fine-tuning and distillation can be read off directly. The Marian baseline was chosen because it was developed specifically for low resource languages using the Marian framework in C++. You can read more about this here: [MarianMT](https://huggingface.co/docs/transformers/en/model_doc/marian)
 
 Compute was the binding constraint throughout, so the pipeline is built to run on a single GPU: models are loaded in 4-bit via [Unsloth](https://github.com/unslothai/unsloth) and adapted with LoRA rather than full fine-tuning. Final evaluation uses the held-out FLORES-200 English→Occitan `dev` split (997 sentences), scored with both BLEU and chrF — the latter being especially informative for a morphologically rich language like Occitan.
 
@@ -48,7 +48,12 @@ Compute was the binding constraint throughout, so the pipeline is built to run o
 
 ```mermaid
 flowchart TD;
-    A["Data Download"]-->B["Cleaning and Deduplication"]-->C["Sampling(Random/Length-Stratified/Hybrid)"]-->D["Teacher fine-tuning"]-->E["Generating synthetic examples"]-->F["Student fine-tuning"]-->G["Evaluation"];
+    A["Data Download"]-->B["Cleaning and Deduplication"];
+    B["Cleaning and Deduplication"]-->C["Sampling (Random/Length-Stratified/Hybrid)"];
+    C["Sampling (Random/Length-Stratified/Hybrid)"]-->D["Teacher fine-tuning"];
+    D["Teacher fine-tuning"]-->E["Generating synthetic examples"];
+    E["Generating synthetic examples"]-->F["Student fine-tuning using Sequence KD"];
+    F["Student fine-tuning using Sequence KD"]-->G["Evaluation"];
 ```
 
 
