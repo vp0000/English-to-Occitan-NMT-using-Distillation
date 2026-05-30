@@ -47,8 +47,8 @@ Compute was the binding constraint throughout, so the pipeline is built to run o
 ### Workflow in Brief
 
 ```mermaid
-graph TD;
-    Data Download-->Cleaning and Deduplication-->Sampling(Random/Length-Stratified/Hybrid)-->Teacher fine-tuning-->Generating synthetic examples-->Student fine-tuning-->Evaluation;
+flowchart TD;
+    A["Data Download"]-->B["Cleaning and Deduplication"]-->C["Sampling(Random/Length-Stratified/Hybrid)"]-->D["Teacher fine-tuning"]-->E["Generating synthetic examples"]-->F["Student fine-tuning"]-->G["Evaluation"];
 ```
 
 
